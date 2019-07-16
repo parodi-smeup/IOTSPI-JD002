@@ -1,4 +1,4 @@
-package com.smeup.iotspi.filesystem.filemonitor;
+package com.smeup.iotspi.jd002.filemonitor;
 
 public interface WatchDirListener
 {

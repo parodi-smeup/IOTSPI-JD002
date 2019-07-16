@@ -1,4 +1,4 @@
-package com.smeup.iotspi.filesystem;
+package com.smeup.iotspi.jd002;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,10 +11,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.smeup.iotspi.filesystem.filemonitor.LogReceiverInterface;
-import com.smeup.iotspi.filesystem.filemonitor.WatchDir;
-import com.smeup.iotspi.filesystem.filemonitor.WatchDirEvent;
-import com.smeup.iotspi.filesystem.filemonitor.WatchDirListener;
+import com.smeup.iotspi.jd002.filemonitor.LogReceiverInterface;
+import com.smeup.iotspi.jd002.filemonitor.WatchDir;
+import com.smeup.iotspi.jd002.filemonitor.WatchDirEvent;
+import com.smeup.iotspi.jd002.filemonitor.WatchDirListener;
 
 import Smeup.smeui.iotspi.datastructure.interfaces.SezInterface;
 import Smeup.smeui.iotspi.datastructure.interfaces.SubInterface;

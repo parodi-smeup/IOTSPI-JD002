@@ -1,4 +1,4 @@
-package com.smeup.iotspi.filesystem.filemonitor;
+package com.smeup.iotspi.jd002.filemonitor;
 
 /*
  * This code is free software; you can redistribute it and/or

@@ -1,4 +1,4 @@
-package com.smeup.iotspi.filesystem.filemonitor;
+package com.smeup.iotspi.jd002.filemonitor;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;

@@ -8,8 +8,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.smeup.iotspi.jd002.filemonitor.LogReceiverInterface;
 import com.smeup.iotspi.jd002.filemonitor.WatchDir;
@@ -24,7 +22,7 @@ import Smeup.smeui.iotspi.datastructure.iotconnector.IoTConnectorResponse;
 import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 import Smeup.smeui.iotspi.interaction.SPIIoTEvent;
 
-public class FileSystemConnector extends SPIIoTConnectorAdapter implements WatchDirListener, LogReceiverInterface
+public class Jd002Plugin extends SPIIoTConnectorAdapter implements WatchDirListener, LogReceiverInterface
 {
 	WatchDir iMonitor = null;
 	IoTConnectorConf iConfiguration= null;
@@ -127,7 +125,7 @@ public class FileSystemConnector extends SPIIoTConnectorAdapter implements Watch
 			}
 			HashMap<String, String> vEvtContent = aEvt.getContent();
 			SPIIoTEvent vForwardedEvt = new SPIIoTEvent(vSubId);
-			log(0, "FileSystemConnector: comunico " + vEvtContent.get("EVENT") + ": " + vEvtContent.get("PATH"));
+			log(0, "Jd002Plugin: comunico " + vEvtContent.get("EVENT") + ": " + vEvtContent.get("PATH"));
 			Iterator<String> vKeyIter = vEvtContent.keySet().iterator();
 			while (vKeyIter.hasNext())
 			{
@@ -141,7 +139,7 @@ public class FileSystemConnector extends SPIIoTConnectorAdapter implements Watch
 
 	public static void main(String[] args)
 	{
-		final FileSystemConnector vConnector = new FileSystemConnector();
+		final Jd002Plugin vConnector = new Jd002Plugin();
 		final IoTConnectorConf vConf = new IoTConnectorConf();
 		File vDir = new File("c:\\temp");
 		vConf.addData("PATH", vDir.toString());

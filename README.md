@@ -1,5 +1,6 @@
-<<<<<<< HEAD
-# IOTSPI-FileSystemPlugin
+# IOTSPI-JD002 (RPG Intepreted Filesystem Listener Plugin)
+
+Replica la stessa funzionalità di IOTSPI-FileSystemPlugin ma di fatto si tratta di un RPG interpretato.
 
 Versione esterna del plugin contenuto in SmeupProvider
 
@@ -24,6 +25,4 @@ Al verificarsi del tipo di evento desiderato, nella cartella monitorata, per il 
 - PATH = file al quale è relativo l'evento
 - DIMENSION = dimensione del file
 - DATETIME = istante in cui si è riscontrato l'evento (in formato GMT)
-=======
-# IOTSPI-JD002
->>>>>>> branch 'master' of https://github.com/parodi-smeup/IOTSPI-JD002.git
+

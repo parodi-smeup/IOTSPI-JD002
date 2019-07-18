@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.smeup.iotspi.jd002.LogLevel;
+import com.smeup.iotspi.jd002.filemonitor.LogReceiverInterface;
+import com.smeup.iotspi.jd002.filemonitor.WatchDirEvent;
+import com.smeup.iotspi.jd002.filemonitor.WatchDirListener;
 import com.smeup.rpgparser.interpreter.NumberType;
 import com.smeup.rpgparser.interpreter.Program;
 import com.smeup.rpgparser.interpreter.ProgramParam;
@@ -24,7 +27,7 @@ import com.smeup.rpgparser.interpreter.Value;
 
 import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 
-public class JD_RCVSCK implements Program {
+public class JD_LSTFLD implements Program, WatchDirListener{
 
 	private List<ProgramParam> parms;
 	@SuppressWarnings("unused")
@@ -34,10 +37,10 @@ public class JD_RCVSCK implements Program {
 	
 	private int logLevel = LogLevel.DEBUG.getLevel();
 	
-	public JD_RCVSCK() {
+	public JD_LSTFLD() {
 		parms = new ArrayList<ProgramParam>();
 		// Socket address
-		parms.add(new ProgramParam("ADDRSK", new StringType(15)));
+		parms.add(new ProgramParam("ADDRSK", new StringType(4096)));
 		// Response (read from socket)
 		parms.add(new ProgramParam("BUFFER", new StringType(30000)));
 		// Response length
@@ -46,6 +49,17 @@ public class JD_RCVSCK implements Program {
 		parms.add(new ProgramParam("IERROR", new StringType(1)));
 	}
 
+	private String listenFolderChanges(final String folder, final String mode, final String filter, final String recursive) {
+		String msgLog = getTime() + "Executing listenSocket(" + folder + ", " + mode + ", " + filter + ", " + recursive + ")";
+		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
+		String responseAsString = "";
+
+		
+		
+		
+		return responseAsString;
+	}
+	
 	private String listenSocket(final int port) {
 
 		String msgLog = getTime() + "Executing listenSocket(" + port + ")";
@@ -69,10 +83,6 @@ public class JD_RCVSCK implements Program {
 			int readed = 0;
 			int charNumber = 0;
 
-			//TIMEOUT: serve perchè la telecamera non manda un carattere di fine (forse) quindi
-			//per terminare la lettura si attende 2s. poi viene lanciato il timeoutException e
-			//dentro al catch viene recuperato il contennuto della socket.
-			//Per me è SHIT.
 			socket.setSoTimeout(1000); // SAME AS VEGA PLUGIN (MONKEY COPY, DON'T KNOW WHY)
 			while ((readed = bufferedReader.read(bufferSize)) != -1) {
 				stringWriter.write(bufferSize, 0, readed);
@@ -115,7 +125,7 @@ public class JD_RCVSCK implements Program {
 	@SuppressWarnings("unused")
 	@Override
 	public List<Value> execute(SystemInterface arg0, LinkedHashMap<String, Value> arg1) {
-		String msgLog = getTime() + "Executing JD_RCVSCK.execute(...)";
+		String msgLog = getTime() + "Executing JD_LSTFLD.execute(...)";
 		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
 
 		ArrayList<Value> arrayListResponse = new ArrayList<Value>();
@@ -151,10 +161,18 @@ public class JD_RCVSCK implements Program {
 			arrayListResponse.add(entry.getValue());
 
 		}
+		
+		//extract parms
+		String[] parms = addrsk.split("\\|");
+		final String folder = parms[0].substring(7, parms[0].length()-1);
+		final String mode = parms[1].substring(5, parms[1].length()-1);
+		final String filter = parms[2].substring(7, parms[2].length()-1);
+		final String recursive = parms[3].substring(10, parms[3].length()-1);
+		
 
-		// listen to socket
+		// listen to folder changes
 		int port = Integer.parseInt(addrsk.trim());
-		response = listenSocket(port);
+		response = listenFolderChanges(folder, mode, filter, recursive);
 
 		// response from socket content
 		arrayListResponse.set(1, new StringValue(response.trim()));
@@ -193,5 +211,11 @@ public class JD_RCVSCK implements Program {
 	
 	private static String getTime() {
 		return "[" + new Timestamp(System.currentTimeMillis()) + "] ";
+	}
+
+	@Override
+	public void fireWatcherEvent(WatchDirEvent aEvent) {
+		// TODO Auto-generated method stub
+		
 	}
 }

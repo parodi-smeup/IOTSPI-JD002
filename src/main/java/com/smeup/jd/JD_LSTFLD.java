@@ -9,12 +9,16 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.smeup.iotspi.jd002.LogLevel;
-import com.smeup.iotspi.jd002.filemonitor.LogReceiverInterface;
+import com.smeup.iotspi.jd002.filemonitor.WatchDir;
 import com.smeup.iotspi.jd002.filemonitor.WatchDirEvent;
 import com.smeup.iotspi.jd002.filemonitor.WatchDirListener;
 import com.smeup.rpgparser.interpreter.NumberType;
@@ -27,16 +31,19 @@ import com.smeup.rpgparser.interpreter.Value;
 
 import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 
-public class JD_LSTFLD implements Program, WatchDirListener{
+public class JD_LSTFLD implements Program, WatchDirListener {
 
 	private List<ProgramParam> parms;
 	@SuppressWarnings("unused")
 	private String iError;
 	private ServerSocket serverSocket;
 	private SPIIoTConnectorAdapter sPIIoTConnectorAdapter;
-	
+	private WatchDir watchDir;
+	private ExecutorService executorService;
+	private HashMap<String, String> parmsMap;
+
 	private int logLevel = LogLevel.DEBUG.getLevel();
-	
+
 	public JD_LSTFLD() {
 		parms = new ArrayList<ProgramParam>();
 		// Socket address
@@ -49,17 +56,25 @@ public class JD_LSTFLD implements Program, WatchDirListener{
 		parms.add(new ProgramParam("IERROR", new StringType(1)));
 	}
 
-	private String listenFolderChanges(final String folder, final String mode, final String filter, final String recursive) {
-		String msgLog = getTime() + "Executing listenSocket(" + folder + ", " + mode + ", " + filter + ", " + recursive + ")";
-		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-		String responseAsString = "";
+	private boolean listenFolderChanges() {
 
-		
-		
-		
-		return responseAsString;
+		String msgLog = getTime() + "Executing listenFolderChanges()";
+		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
+
+		getWatchDir().addListener(this);
+		final boolean watchDirState = getWatchDir().addRegister(this.parmsMap);
+		if (watchDirState) {
+			Runnable runnable = new Runnable() {
+				public void run() {
+					getWatchDir().start(getParmsMap());
+				}
+			};
+			setExecutorService(Executors.newFixedThreadPool(1));
+			getExecutorService().execute(runnable);
+		}
+		return watchDirState;
 	}
-	
+
 	private String listenSocket(final int port) {
 
 		String msgLog = getTime() + "Executing listenSocket(" + port + ")";
@@ -161,18 +176,21 @@ public class JD_LSTFLD implements Program, WatchDirListener{
 			arrayListResponse.add(entry.getValue());
 
 		}
-		
-		//extract parms
+
+		// extract parms
 		String[] parms = addrsk.split("\\|");
-		final String folder = parms[0].substring(7, parms[0].length()-1);
-		final String mode = parms[1].substring(5, parms[1].length()-1);
-		final String filter = parms[2].substring(7, parms[2].length()-1);
-		final String recursive = parms[3].substring(10, parms[3].length()-1);
-		
+		final String folder = parms[0].substring(7, parms[0].length() - 1);
+		final String mode = parms[1].substring(5, parms[1].length() - 1);
+		final String filter = parms[2].substring(7, parms[2].length() - 1);
+		final String recursive = parms[3].substring(10, parms[3].length() - 1);
+		getParmsMap().put("Folder", folder);
+		getParmsMap().put("Mode", mode);
+		getParmsMap().put("Filter", filter);
+		getParmsMap().put("Recursive", recursive);
 
 		// listen to folder changes
 		int port = Integer.parseInt(addrsk.trim());
-		response = listenFolderChanges(folder, mode, filter, recursive);
+		listenFolderChanges();
 
 		// response from socket content
 		arrayListResponse.set(1, new StringValue(response.trim()));
@@ -208,7 +226,7 @@ public class JD_LSTFLD implements Program, WatchDirListener{
 			aClientSocket.close();
 		}
 	}
-	
+
 	private static String getTime() {
 		return "[" + new Timestamp(System.currentTimeMillis()) + "] ";
 	}
@@ -216,6 +234,30 @@ public class JD_LSTFLD implements Program, WatchDirListener{
 	@Override
 	public void fireWatcherEvent(WatchDirEvent aEvent) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	public WatchDir getWatchDir() {
+		return watchDir;
+	}
+
+	public void setWatchDir(WatchDir watchDir) {
+		this.watchDir = watchDir;
+	}
+
+	public HashMap<String, String> getParmsMap() {
+		return parmsMap;
+	}
+
+	public void setParmsMap(HashMap<String, String> parmsMap) {
+		this.parmsMap = parmsMap;
+	}
+
+	public ExecutorService getExecutorService() {
+		return executorService;
+	}
+
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
 	}
 }

@@ -101,7 +101,6 @@ public class FileSystemConnector extends SPIIoTConnectorAdapter implements Watch
 	@Override
 	public boolean ping()
 	{
-		//		return iCommandDispatcher.isAlive() && iCommandWatcher.isAlive();
 		return iMonitor!=null && iMonitor.isActive();
 	}
 

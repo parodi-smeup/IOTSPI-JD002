@@ -1,13 +1,16 @@
 package com.smeup.iotspi.jd002;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
+import com.smeup.iotspi.jd002.filemonitor.WatchDir;
 import com.smeup.rpgparser.CommandLineProgram;
 import com.smeup.rpgparser.RunnerKt;
 
@@ -35,6 +38,9 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 	private MyJavaSystemInterface javaSystemInterface;
 	private ByteArrayOutputStream byteArrayOutputStream;
 	private PrintStream printStream;
+	private WatchDir watchDir;
+	private ExecutorService executorService;
+
 	private String a37tags;
 	private Thread t = null;
 	private Boolean isAlive = true;
@@ -78,7 +84,16 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 
 		logMsg = getTime() + "new JavaSystemInterface...";
 		log(logLevel, logMsg);
-		javaSystemInterface = new MyJavaSystemInterface(printStream, this);
+
+		try {
+			watchDir = new WatchDir();
+		} catch (IOException ex) {
+			log(0, ex.getMessage());
+			ex.printStackTrace();
+			return false;
+		}
+
+		javaSystemInterface = new MyJavaSystemInterface(printStream, this, watchDir, executorService);
 		javaSystemInterface.addJavaInteropPackage("com.smeup.jd");
 
 		t = new Thread(this);
@@ -123,7 +138,8 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 			// Call JD003 POSTINIT method
 			parms.add("INZ");
 			parms.add("POSTINIT");
-			final String p = String.format("Folder(%s) Mode(%s) Filter(%s) Recursive(s%)", folder.trim(), mode.trim(), filter.trim(), recursive.trim()); 
+			final String p = String.format("Folder(%s) Mode(%s) Filter(%s) Recursive(s%)", folder.trim(), mode.trim(),
+					filter.trim(), recursive.trim());
 			parms.add(p);
 			parms.add("");
 			response = callProgram(parms);
@@ -200,9 +216,20 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 
 	@Override
 	public boolean unplug() {
-		// TODO Auto-generated method stub
-		isAlive = false;
-		return false;
+		boolean response = false;
+		try {
+			if (watchDir.isActive()) {
+				watchDir.close();
+			}
+
+			if (!executorService.isShutdown()) {
+				executorService.shutdown();
+			}
+			response = true;
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		return response;
 	}
 
 	@Override

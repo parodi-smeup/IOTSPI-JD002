@@ -1,9 +1,11 @@
 package com.smeup.iotspi.jd002;
 
 import java.io.PrintStream;
+import java.util.concurrent.ExecutorService;
 
-import com.smeup.jd.JD_NFYEVE;
+import com.smeup.iotspi.jd002.filemonitor.WatchDir;
 import com.smeup.jd.JD_LSTFLD;
+import com.smeup.jd.JD_NFYEVE;
 import com.smeup.rpgparser.interpreter.Program;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
 
@@ -11,8 +13,10 @@ import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 
 public class MyJavaSystemInterface extends JavaSystemInterface {
 	private SPIIoTConnectorAdapter sPIIoTConnectorAdapter;
+	private WatchDir watchDir;	
+	private ExecutorService executorService;
 
-	public MyJavaSystemInterface(PrintStream printStream, SPIIoTConnectorAdapter sPIIoTConnectorAdapter) {
+	public MyJavaSystemInterface(PrintStream printStream, SPIIoTConnectorAdapter sPIIoTConnectorAdapter, WatchDir watchDir, ExecutorService executorService) {
 		super(printStream);
 		this.sPIIoTConnectorAdapter = sPIIoTConnectorAdapter;
 	}
@@ -26,6 +30,8 @@ public class MyJavaSystemInterface extends JavaSystemInterface {
 		}
 		if (program instanceof JD_LSTFLD) {
 			((JD_LSTFLD) program).setsPIIoTConnectorAdapter(sPIIoTConnectorAdapter);
+			((JD_LSTFLD) program).setWatchDir(watchDir);
+			((JD_LSTFLD) program).setExecutorService(executorService);
 		}
 		return program;
 	}

@@ -141,16 +141,6 @@ public class WatchDir
 		KEYS= new HashMap<WatchKey, Path>();
 	}
 	
-//	public static WatchDir getInstance() throws IOException
-//	{
-//		if(INSTANCE==null) 
-//		{
-//			INSTANCE= new WatchDir();
-//		}
-//		
-//		return INSTANCE;
-//	}
-
 	public void close() throws IOException
 	{
 		WATCHER.close();

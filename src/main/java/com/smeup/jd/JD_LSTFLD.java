@@ -2,15 +2,10 @@ package com.smeup.jd;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +31,6 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 	private List<ProgramParam> parms;
 	@SuppressWarnings("unused")
 	private String iError;
-	private ServerSocket serverSocket;
 	private SPIIoTConnectorAdapter sPIIoTConnectorAdapter;
 	private WatchDir watchDir;
 	private ExecutorService executorService;
@@ -48,7 +42,7 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		parms = new ArrayList<ProgramParam>();
 		// Socket address
 		parms.add(new ProgramParam("ADDRSK", new StringType(4096)));
-		// Response (read from socket)
+		// Response
 		parms.add(new ProgramParam("BUFFER", new StringType(30000)));
 		// Response length
 		parms.add(new ProgramParam("BUFLEN", new NumberType(5, 0)));
@@ -73,63 +67,6 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 			getExecutorService().execute(runnable);
 		}
 		return watchDirState;
-	}
-
-	private String listenSocket(final int port) {
-
-		String msgLog = getTime() + "Executing listenSocket(" + port + ")";
-		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-		String responseAsString = "";
-		Socket socket = null;
-		BufferedReader bufferedReader = null;
-		StringWriter stringWriter = new StringWriter();
-		try {
-			msgLog = getTime() + "Socket listening on port " + port + "...";
-			getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-
-			socket = this.serverSocket.accept();
-
-			msgLog = getTime() + "...client connected";
-			getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-
-			bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-			char[] bufferSize = new char[1024 * 32];
-			int readed = 0;
-			int charNumber = 0;
-
-			socket.setSoTimeout(1000); // SAME AS VEGA PLUGIN (MONKEY COPY, DON'T KNOW WHY)
-			while ((readed = bufferedReader.read(bufferSize)) != -1) {
-				stringWriter.write(bufferSize, 0, readed);
-				charNumber += readed;
-			}
-			responseAsString = stringWriter.toString().trim();
-
-			msgLog = getTime() + "Content written: " + responseAsString;
-			getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-
-			socketAndInBufferDestroy(socket, bufferedReader);
-
-		} catch (SocketTimeoutException e) {
-			msgLog = getTime() + "SocketTimeoutException " + e.getMessage();
-			getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-			responseAsString = stringWriter.toString().trim();
-			try {
-				socketAndInBufferDestroy(socket, bufferedReader);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			e.printStackTrace();
-		} catch (IOException e) {
-			msgLog = getTime() + "IOException " + e.getMessage();
-			getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-			e.printStackTrace();
-			responseAsString = "*ERROR " + e.getMessage();
-			iError = "1";
-		}
-
-		return responseAsString;
 	}
 
 	@Override
@@ -200,14 +137,6 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		arrayListResponse.set(2, new StringValue(String.valueOf(bufferLength)));
 
 		return arrayListResponse;
-	}
-
-	public ServerSocket getServerSocket() {
-		return serverSocket;
-	}
-
-	public void setServerSocket(ServerSocket serverSocket) {
-		this.serverSocket = serverSocket;
 	}
 
 	public SPIIoTConnectorAdapter getsPIIoTConnectorAdapter() {

@@ -134,7 +134,7 @@
       * .Post Init (main program, listen to folder changes and fire event)
 1x   C                   WHEN      U$METO='POSTINIT'
      C                   EVAL      ADDRSK=$$SVAR
-      * .Folder(c:/myFolder/xxx) Mode(C;M;D) Filter=(txt;pdf;jpg;doc)
+      * .Folder(c:/myFolder/xxx)|Mode(C;M;D)|Filter(txt;pdf;jpg;doc)
       *  Recursive(true)
      C                   EXSR      CARVAR_INZ
 2    C                   IF        ADDRSK<>''
@@ -250,7 +250,7 @@
       *
       * Vars example:
       *
-      * .Folder(c:/myFolder/xxx) Mode(C;M;D) Filter=(txt;pdf;jpg;doc)
+      * .Folder(c:/myFolder/xxx)|Mode(C;M;D)|Filter(txt;pdf;jpg;doc)
       *  Recursive(true)
      C                   CLEAR                   $ATTRI            5 0
      C                   CLEAR                   $BRACK            5 0
@@ -304,7 +304,7 @@
       *
      C                   EVAL      $$VAR=%SUBST(BUFFER:1:BUFLEN)
       * Vars example:
-      * Name(c:/myFolder/xxx) Type(FILE) Operation(C)
+      * Name(c:/myFolder/xxx)|Type(FILE)|Operation(C)
       *
      C                   CLEAR                   $ATTRI            5 0
      C                   CLEAR                   $BRACK            5 0

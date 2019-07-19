@@ -233,9 +233,9 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 	}
 
 	@Override
-	public boolean ping() {
-		// TODO Auto-generated method stub
-		return true;
+	public boolean ping()
+	{
+		return watchDir!=null && watchDir.isActive();
 	}
 
 	private static String getTime() {

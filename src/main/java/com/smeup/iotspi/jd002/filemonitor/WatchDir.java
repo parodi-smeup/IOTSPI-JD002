@@ -366,11 +366,16 @@ public class WatchDir
 
 	private void loop()
 	{
+		log("Chiamato metodo loop()");
+		
+		//TODO rimuovere il loop true e gestire l'evento
 		while (true)
 		{
+			log("Iterazione dentro a loop()");
 			WatchKey key=null;
 			try
 			{
+				log("eseguo take()");
 				key = WATCHER.take();
 			}
 			catch (InterruptedException x)
@@ -383,6 +388,7 @@ public class WatchDir
 				continue;
 			}
 			Path dir = KEYS.get(key);
+			log("eseguo get(key)");
 			if (dir == null)
 			{
 				log("Error: WatchKey not recognized!!");
@@ -390,6 +396,7 @@ public class WatchDir
 			}
 			for (WatchEvent<?> event : key.pollEvents())
 			{
+				log("cicla sugli eventi)");
 				WatchEvent.Kind kind = event.kind();
 				if (kind == OVERFLOW)
 				{
@@ -444,10 +451,13 @@ public class WatchDir
 				}
 				if (iRecursive && (kind == ENTRY_CREATE))
 				{
+					log("Is recursive and is a creation");
+
 					try
 					{
 						if (Files.isDirectory(child, NOFOLLOW_LINKS))
 						{
+							log("IS a directoy");
 							registerAll(child);
 						}
 					}

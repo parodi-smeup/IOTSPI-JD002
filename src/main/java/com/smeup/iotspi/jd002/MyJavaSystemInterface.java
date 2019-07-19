@@ -19,6 +19,8 @@ public class MyJavaSystemInterface extends JavaSystemInterface {
 	public MyJavaSystemInterface(PrintStream printStream, SPIIoTConnectorAdapter sPIIoTConnectorAdapter, WatchDir watchDir, ExecutorService executorService) {
 		super(printStream);
 		this.sPIIoTConnectorAdapter = sPIIoTConnectorAdapter;
+		this.watchDir = watchDir;	
+		this.executorService = executorService;
 	}
 
 	@Override

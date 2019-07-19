@@ -50,7 +50,9 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		parms.add(new ProgramParam("IERROR", new StringType(1)));
 	}
 
-	private boolean listenFolderChanges() {
+	private ArrayList<WatchDirEvent> listenFolderChanges() {
+
+		ArrayList<WatchDirEvent> watchDirEventList = new ArrayList<WatchDirEvent>();
 
 		String msgLog = getTime() + "Executing listenFolderChanges()";
 		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
@@ -58,15 +60,9 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		getWatchDir().addListener(this);
 		final boolean watchDirState = getWatchDir().addRegister(this.parmsMap);
 		if (watchDirState) {
-			Runnable runnable = new Runnable() {
-				public void run() {
-					getWatchDir().start(getParmsMap());
-				}
-			};
-			setExecutorService(Executors.newFixedThreadPool(1));
-			getExecutorService().execute(runnable);
+			watchDirEventList = getWatchDir().start(getParmsMap());
 		}
-		return watchDirState;
+		return watchDirEventList;
 	}
 
 	@Override
@@ -127,7 +123,9 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 
 		// listen to folder changes
 		int port = Integer.parseInt(addrsk.trim());
-		listenFolderChanges();
+		
+		//TODO Estrarre dati evento...
+		ArrayList<WatchDirEvent> watchDirEventList = listenFolderChanges();
 
 		// response from socket content
 		arrayListResponse.set(1, new StringValue(response.trim()));

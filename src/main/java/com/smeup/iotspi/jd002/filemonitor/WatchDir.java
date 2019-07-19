@@ -275,8 +275,10 @@ public class WatchDir
 		log("processEvent: "+vProcess);
 	}
 
-	public void start(HashMap<String, String> mappa)
+	public ArrayList<WatchDirEvent> start(HashMap<String, String> mappa)
 	{
+		
+		ArrayList<WatchDirEvent> watchDirEventList = new ArrayList<WatchDirEvent>();
 		if (!isActive())
 		{
 			iActive= init(mappa);
@@ -284,8 +286,10 @@ public class WatchDir
 
 		if(isActive())
 		{
-			loop();
+			watchDirEventList = loop();
 		}
+		
+		return watchDirEventList;
 	}
 
 	private boolean processEvents(String[] filtri)
@@ -364,13 +368,15 @@ public class WatchDir
 		return valid;
 	}
 
-	private void loop()
+	private ArrayList<WatchDirEvent> loop()
 	{
 		log("Chiamato metodo loop()");
 		
-		//TODO rimuovere il loop true e gestire l'evento
-		while (true)
+		ArrayList<WatchDirEvent> watchDirEventList = new ArrayList<WatchDirEvent>();
+		boolean loop = true;
+		while (loop)
 		{
+			loop = false;
 			log("Iterazione dentro a loop()");
 			WatchKey key=null;
 			try
@@ -381,7 +387,7 @@ public class WatchDir
 			catch (InterruptedException x)
 			{
 				x.printStackTrace();
-				return;
+				return watchDirEventList;
 			}
 			if(key==null)
 			{
@@ -445,7 +451,8 @@ public class WatchDir
 						{
 							System.out.println("201 WatchDir");
 							WatchDirListener vWatchDirListener = (WatchDirListener) vListenerIterator.next();
-							vWatchDirListener.fireWatcherEvent(vEvent);
+//							vWatchDirListener.fireWatcherEvent(vEvent);
+							watchDirEventList.add(vEvent);
 						}
 					}
 				}
@@ -477,6 +484,8 @@ public class WatchDir
 				}
 			}
 		}
+		
+		return watchDirEventList;
 	}
 
 	public boolean isActive()

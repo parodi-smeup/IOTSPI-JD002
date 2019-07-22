@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.smeup.iotspi.jd002.LogLevel;
 import com.smeup.iotspi.jd002.filemonitor.WatchDir;
@@ -57,11 +56,17 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		String msgLog = getTime() + "Executing listenFolderChanges()";
 		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
 
+		msgLog = getTime() + "Add WatchDir listener";
+		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
 		getWatchDir().addListener(this);
-		final boolean watchDirState = getWatchDir().addRegister(this.parmsMap);
+		
+		final boolean watchDirState = getWatchDir().addRegister(getParmsMap());
 		if (watchDirState) {
 			watchDirEventList = getWatchDir().start(getParmsMap());
 		}
+		msgLog = getTime() + "Remove WatchDir listener";
+		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
+		getWatchDir().removeListener(this);
 		return watchDirEventList;
 	}
 
@@ -77,6 +82,7 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
 
 		ArrayList<Value> arrayListResponse = new ArrayList<Value>();
+		setParmsMap(new HashMap<>());
 
 		String response = "";
 		int bufferLength = 0;
@@ -112,24 +118,42 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 
 		// extract parms
 		String[] parms = addrsk.split("\\|");
-		final String folder = parms[0].substring(7, parms[0].length() - 1);
-		final String mode = parms[1].substring(5, parms[1].length() - 1);
-		final String filter = parms[2].substring(7, parms[2].length() - 1);
-		final String recursive = parms[3].substring(10, parms[3].length() - 1);
-		getParmsMap().put("Folder", folder);
-		getParmsMap().put("Mode", mode);
-		getParmsMap().put("Filter", filter);
-		getParmsMap().put("Recursive", recursive);
+
+		String p0 = parms[0].trim();
+		String path = p0.substring(5, p0.length() - 1);
+		String p1 = parms[1].trim();
+		String filter = p1.substring(7, p1.length() - 1);
+		String p2 = parms[2].trim();
+		String recursive = p2.substring(10, p2.length() - 1);
+		String p3 = parms[3].trim();
+		String event = p3.substring(6, p3.length() - 1);
+
+		msgLog = getTime() + "Extracted parms: PATH(" + path.trim() + ")|" + "FILTER(" + filter.trim() + ")|"
+				+ "RECURSIVE(" + recursive.trim() + ")|" + "EVENT(" + event.trim() + ")";
+		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
+
+		getParmsMap().put("PATH", path);
+		getParmsMap().put("FILTER", filter);
+		getParmsMap().put("RECURSIVE", recursive);
+		getParmsMap().put("EVENT", event);
 
 		// listen to folder changes
-		int port = Integer.parseInt(addrsk.trim());
-		
-		//TODO Estrarre dati evento...
+		// int port = Integer.parseInt(addrsk.trim());
+
+		// TODO Estrarre dati evento nella forma
+		// "NAME(c:/myFolder/xxx)|TYPE(FILE)|OPERATION(C)
 		ArrayList<WatchDirEvent> watchDirEventList = listenFolderChanges();
+		String eventResponse = "";
+		if (null != watchDirEventList && watchDirEventList.size() > 0) {
+				String name = "Name(" + watchDirEventList.get(0).getContent().get("PATH").trim() + ")";
+				String type = "Type(FILE)";
+				String operation = "Operation(" + watchDirEventList.get(0).getContent().get("EVENT").trim() + ")";
+				eventResponse = eventResponse + name + "|" + type + "|" + operation + "|";
+		}
 
-		// response from socket content
+		response = eventResponse;
+		// response
 		arrayListResponse.set(1, new StringValue(response.trim()));
-
 		// response length
 		bufferLength = response.trim().length();
 		arrayListResponse.set(2, new StringValue(String.valueOf(bufferLength)));

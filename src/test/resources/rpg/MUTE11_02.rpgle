@@ -6,6 +6,7 @@
      V* 04/02/19  V5R1    AS Comments translated to english
      V* 05/07/19  V5R1    BMA Renamed JD_002 in MUTE11_02
      V* 16/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
+     V* 22/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -26,12 +27,12 @@
       *---------------------------------------------------------------
       * PARM LISTEN_FLD (Folder listener)
       * . Folder to monitor
-     D §§FLD           S           1000
+     D §§PTH           S           1000
       * . Object name involved in the event
      D §§NAM           S           1000
       * . Object type involved in the event (FILE/FOLDER)
      D §§TIP           S             10
-      * . Event type (see "Mode" variable)
+      * . Event type (see "Event" variable)
      D §§OPE           S             10
       *---------------------------------------------------------------
       * PARM JD_NFYEVE (notify the event)
@@ -42,13 +43,13 @@
       * . Array of variables
      D §§SVAR          S                   LIKE($$SVAR)
       *---------------------------------------------------------------
-      * "Folder" variable (input): Folder name
-     D $$FLD           S           1000
-      * "Mode" variable (input): Events to monitor
+      * "Path" variable (input): Path name
+     D $$PTH           S           1000
+      * "Event" variable (input): Events to monitor
       * . *ADD File or folder creation
       * . *CHG File change
       * . *DEL File or foldere deletion
-     D $$MOD           S             15
+     D $$EVE           S             15
       * "filter" variable (input): Filter to apply
       * . Now we can set up only a single filter and only in form *.extension
      D $$FLT           S           1000
@@ -56,12 +57,19 @@
      D $$REC           S              5
       *---------------------------------------------------------------
       * Work variables
-     D $$EST_FLT       S             10
+     D $$EST_FLT       S             10    VARYING
      D OK              S              1N
      D ADDRSK          S           4096
      D $$VAR           S           4096
      D $X              S              5  0
      D A37TAGS         S           4096
+      *---------------------------------------------------------------
+     D $ATTRI          S              5  0
+     D $BRACK          S              5  0
+     D $ATTLEN         S              5  0
+     D $C              S              5  0
+     D $L              S              5  0
+     D $S              S              5  0
       *---------------------------------------------------------------
       * Buffer received
      D BUFFER          S          30000
@@ -131,11 +139,10 @@
 1x   C                   WHEN      U$METO='A37TAGS'
      C                   EVAL      A37TAGS=$$SVAR
       *
-      * .Post Init (main program, listen to folder changes and fire event)
+      * .Post Init (main program, listen to path changes and fire event)
 1x   C                   WHEN      U$METO='POSTINIT'
      C                   EVAL      ADDRSK=$$SVAR
-      * .Folder(c:/myFolder/xxx)|Mode(C;M;D)|Filter(txt;pdf;jpg;doc)
-      *  Recursive(true)
+      * .PATH(c:/myFolder/xxx)|FILTER(txt;pdf;jpg;doc)|RECURSIVE(true)|EVENT(C;M;D)
      C                   EXSR      CARVAR_INZ
 2    C                   IF        ADDRSK<>''
 3    C                   DO        *HIVAL
@@ -195,8 +202,8 @@
       *--------------------------------------------------------------*
      C     CHKOPE        BEGSR
       *
-1    C                   IF        $$MOD=*BLANKS OR
-     C                             %SCAN(%TRIM(§§OPE):$$MOD)>0
+1    C                   IF        $$EVE=*BLANKS OR
+     C                             %SCAN(%TRIM(§§OPE):$$EVE)>0
      C                   EVAL      OK=*ON
 1x   C                   ELSE
      C                   EVAL      OK=*OFF
@@ -216,13 +223,27 @@
 1x   C                   WHEN      $$FLT<>*BLANKS AND §§TIP<>'FILE'
      C                   EVAL      OK=*OFF
 1x   C                   OTHER
-     C                   EVAL      $$EST_FLT=%SUBST($$FLT:3)
-2    C                   IF        %LEN(%TRIM(§§NAM))>%LEN(%TRIM($$EST_FLT))+1
-     C                             AND
-     C
-     C                             %TRIM(%SUBST(%TRIM(§§NAM):%LEN(%TRIM(§§NAM))
-     C                              -%LEN(%TRIM($$EST_FLT))))
-     C                             ='.'+%TRIM($$EST_FLT)
+     C                   EVAL      $L=%LEN(%TRIMR(§§NAM))
+      *                   FOR       $L DOWNTO 1
+     C                   CLEAR                   $$EST_FLT
+     C                   DO        *HIVAL
+     C                   EVAL      $L=$L-1
+     C                   IF        $L=0
+     C                   LEAVE
+     C                   ENDIF
+     C                   IF        %SUBST(§§NAM:$L:1)='.'
+     C                   IF        $L+1<%LEN(%TRIMR(§§NAM))
+     C                   EVAL      $$EST_FLT=%SUBST(§§NAM:$L+1)
+     C                   LEAVE
+     C                   ENDIF
+     C                   ENDIF
+     C                   ENDDO
+      *                  ENDFOR
+     C                   EVAL      $S=%SCAN(%TRIM($$EST_FLT):$$FLT)
+     C                   EVAL      $C=%LEN(%TRIM($$EST_FLT))
+     C                   IF        $S>0 AND $S+$C <= %LEN(%TRIM($$FLT)) AND
+     C                             (%SUBST($$EST_FLT:$S+$C)='' OR
+     C                             %SUBST($$EST_FLT:$S+$C)=';')
      C                   EVAL      OK=*ON
 2x   C                   ELSE
      C                   EVAL      OK=*OFF
@@ -238,9 +259,9 @@
       * Extract data (name, type, operation)
      C                   EXSR      EXTRACT_DTA
       *
-     C                   EVAL      §§SVAR='Object name(' + §§NAM + ') ' +       COSTANTE
-     C                                    'Object type(' + §§TIP + ') ' +       COSTANTE
-     C                                 'Operation type(' + §§OPE + ') '         COSTANTE
+     C                   EVAL      §§SVAR='Object name('+%TRIM(§§NAM)+')|' +    COSTANTE
+     C                                    'Object type('+%TRIM(§§TIP)+')|' +    COSTANTE
+     C                                 'Operation type('+%TRIM(§§OPE)+') '      COSTANTE
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -250,33 +271,19 @@
       *
       * Vars example:
       *
-      * .Folder(c:/myFolder/xxx)|Mode(C;M;D)|Filter(txt;pdf;jpg;doc)
-      *  Recursive(true)
-     C                   CLEAR                   $ATTRI            5 0
-     C                   CLEAR                   $BRACK            5 0
-     C                   CLEAR                   $ATTLEN           5 0
-      * Folder
-     C                   EVAL      $ATTRI=%SCAN('Folder(':ADDRSK)               Index of Folder(
-0    C                   IF        $ATTRI>0
-     C                   EVAL      $ATTRI=$ATTRI+7
-     C                   EVAL      $BRACK=%SCAN(')':ADDRSK:$ATTRI)              Index of )
-1    C                   IF        $BRACK>0
-     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
-     C                   EVAL      $$FLD=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
-1e   C                   ENDIF
-0e   C                   ENDIF
-      * Mode
-     C                   EVAL      $ATTRI=%SCAN('Mode(':ADDRSK)                 Index of Mode(
+      * .PATH(c:/myFolder/xxx)|FILTER(txt;pdf;jpg;doc)|RECURSIVE(true)|EVENT(C;M;D)
+      * PATH
+     C                   EVAL      $ATTRI=%SCAN('PATH(':ADDRSK)                 Index of PATH(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+5
      C                   EVAL      $BRACK=%SCAN(')':ADDRSK:$ATTRI)              Index of )
 1    C                   IF        $BRACK>0
      C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
-     C                   EVAL      $$MOD=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
+     C                   EVAL      $$PTH=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
-      * Filter
-     C                   EVAL      $ATTRI=%SCAN('Filter(':ADDRSK)               Index of Filter(
+      * FILTER
+     C                   EVAL      $ATTRI=%SCAN('FILTER(':ADDRSK)               Index of FILTER(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+7
      C                   EVAL      $BRACK=%SCAN(')':ADDRSK:$ATTRI)              Index of )
@@ -285,14 +292,24 @@
      C                   EVAL      $$FLT=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
-      * Recursive
-     C                   EVAL      $ATTRI=%SCAN('Recursive(':ADDRSK)            Index of Filter(
+      * RECURSIVE
+     C                   EVAL      $ATTRI=%SCAN('RECURSIVE(':ADDRSK)            Index of RECURSIVE(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+10
      C                   EVAL      $BRACK=%SCAN(')':ADDRSK:$ATTRI)              Index of )
 1    C                   IF        $BRACK>0
      C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
      C                   EVAL      $$REC=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
+1e   C                   ENDIF
+0e   C                   ENDIF
+      * EVENT
+     C                   EVAL      $ATTRI=%SCAN('EVENT(':ADDRSK)                Index of EVENT(
+0    C                   IF        $ATTRI>0
+     C                   EVAL      $ATTRI=$ATTRI+6
+     C                   EVAL      $BRACK=%SCAN(')':ADDRSK:$ATTRI)              Index of )
+1    C                   IF        $BRACK>0
+     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
+     C                   EVAL      $$EVE=%SUBST(ADDRSK:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
       *
@@ -304,13 +321,10 @@
       *
      C                   EVAL      $$VAR=%SUBST(BUFFER:1:BUFLEN)
       * Vars example:
-      * Name(c:/myFolder/xxx)|Type(FILE)|Operation(C)
+      * NAME(c:/myFolder/xxx)|TYPE(FILE)|OPERATION(C)
       *
-     C                   CLEAR                   $ATTRI            5 0
-     C                   CLEAR                   $BRACK            5 0
-     C                   CLEAR                   $ATTLEN           5 0
-      * Name
-     C                   EVAL      $ATTRI=%SCAN('Name(':$$VAR)                  Index of Folder(
+      * NAME
+     C                   EVAL      $ATTRI=%SCAN('NAME(':$$VAR)                  Index of NAME(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+5
      C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
@@ -319,8 +333,8 @@
      C                   EVAL      §§NAM=%SUBST($$VAR:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
-      * Type
-     C                   EVAL      $ATTRI=%SCAN('Type(':$$VAR)                  Index of Type(
+      * TYPE
+     C                   EVAL      $ATTRI=%SCAN('TYPE(':$$VAR)                  Index of TYPE(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+5
      C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
@@ -329,8 +343,8 @@
      C                   EVAL      §§TIP=%SUBST($$VAR:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
-      * Operation
-     C                   EVAL      $ATTRI=%SCAN('Operation(':$$VAR)             Index of Operation(
+      * OPERATION
+     C                   EVAL      $ATTRI=%SCAN('OPERATION(':$$VAR)             Index of OPERATION(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+10
      C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )

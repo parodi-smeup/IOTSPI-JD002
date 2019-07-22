@@ -6,10 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.smeup.iotspi.jd002.FileSystemConnector;
+import com.smeup.iotspi.jd002.Jd002Plugin;
 
 import Smeup.smeui.iotspi.datastructure.interfaces.SezConfInterface;
 import Smeup.smeui.iotspi.datastructure.interfaces.SezInterface;
@@ -23,20 +22,22 @@ public class Jd002PluginTest extends Thread {
 
 	private IoTConnectorConf connectorConf = new IoTConnectorConf();
 	private SezInterface sezInterface = null;
-	private FileSystemConnector fileSystemConnector = new FileSystemConnector();
+	private Jd002Plugin jd002Plugin = new Jd002Plugin();
 
 	@Test
 	public void test() throws InterruptedException {
 
 		connectorConf.addSub(getSubInterfaceInstance());
 		connectorConf.addData("PATH", "/home/tron/temp/test/listener");
-		connectorConf.addData("FILTRI", "txt;pdf;jpg;doc");
+		connectorConf.addData("FILTER", "txt;pdf;jpg;doc");
 		connectorConf.addData("RECURSIVE", "true");
 		connectorConf.addData("EVENT", "C;M;D");
+		connectorConf.addData("MAILEVENTC", "franco.parodi@smeup.com");
+		connectorConf.addData("MAILEVENTD", "franco.parodi@aol.com");
 		connectorConf.addData("RpgSources", "src/test/resources/rpg/");
 		sezInterface = getSezInterfaceInstance();
 
-		assertEquals(true, fileSystemConnector.postInit(sezInterface, connectorConf));
+		assertEquals(true, jd002Plugin.postInit(sezInterface, connectorConf));
 		// sleep for debug
 		Thread.sleep(1200000);
 	}

@@ -25,14 +25,14 @@ import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 
 	private IoTConnectorConf connectorConf = null;
-	private String folder = null;
-	private String mode = null;
+	private String path = null;
 	private String filter = null;
+	private String event = null;
 	private String recursive = null;
 	private String maileventc = null;
 	private String maileventd = null;
 
-	private final String RPG_FILENAME = "JD_002.rpgle";
+	private final String RPG_FILENAME = "MUTE11_02.rpgle";
 	private String rpgSourceName = null;
 	private CommandLineProgram commandLineProgram;
 	private MyJavaSystemInterface javaSystemInterface;
@@ -64,14 +64,14 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 
 		// Read variables CNFSEZ from script SCP_SET.LOA37_JD3
 		if (connectorConfiguration != null) {
-			folder = connectorConf.getData("FOLDER");
-			mode = connectorConf.getData("MODE");
+			path = connectorConf.getData("PATH");
 			filter = connectorConf.getData("FILTER");
 			recursive = connectorConf.getData("RECURSIVE");
+			event = connectorConf.getData("EVENT");
 			maileventc = connectorConf.getData("MAILEVENTC");
 			maileventd = connectorConf.getData("MAILEVENTD");
 
-			logMsg = getTime() + "folder:" + folder + " mode:" + mode + " filter:" + filter + " recursive:" + recursive
+			logMsg = getTime() + "path:" + path + " event:" + event + " filter:" + filter + " recursive:" + recursive
 					+ " maileventc:" + maileventc + " maileventd:" + maileventd;
 			log(logLevel, logMsg);
 			System.out.println(logMsg);
@@ -138,8 +138,17 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 			// Call JD003 POSTINIT method
 			parms.add("INZ");
 			parms.add("POSTINIT");
-			final String p = String.format("Folder(%s) Mode(%s) Filter(%s) Recursive(s%)", folder.trim(), mode.trim(),
-					filter.trim(), recursive.trim());
+			
+			final String p = "PATH(" + path.trim() + ")|" +
+					"FILTER(" + filter.trim() + ")|" + 
+					"RECURSIVE(" + recursive.trim() + ")|" +
+					"EVENT(" + event.trim() + ")";
+			
+			
+			logMsg = getTime() + "Parms: " + p;
+			log(logLevel, logMsg);
+			System.out.println(logMsg);
+			
 			parms.add(p);
 			parms.add("");
 			response = callProgram(parms);

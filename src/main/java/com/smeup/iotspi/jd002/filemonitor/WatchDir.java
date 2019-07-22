@@ -33,7 +33,7 @@ public class WatchDir
 
 	public static enum MSGVAR
 	{
-		EVENT("EVENT"), PATH("PATH"), DIMENSION("DIMENSION"), DATETIME("DATETIME");
+		EVENT("EVENT"), PATH("PATH"), DIMENSION("DIMENSION"), DATETIME("DATETIME"), TYPE("TYPE");
 		
 		String iCode= null;
 		
@@ -294,6 +294,8 @@ public class WatchDir
 
 	private boolean processEvents(String[] filtri)
 	{
+		
+		ArrayList<WatchDirEvent> watchDirEventList = new ArrayList<WatchDirEvent>();
 		WatchKey key;
 		key = WATCHER.poll();
 		Path dir = KEYS.get(key);
@@ -332,6 +334,8 @@ public class WatchDir
 				log(MessageFormat.format("%s: %s - %s\n", event.kind().name(), child, child.toFile().length()));
 				iFileMap.put(MSGVAR.EVENT.getCode(), EVENTS.retrieveCode(event.kind()));
 				iFileMap.put(MSGVAR.PATH.getCode(), child.toString());
+				Path file = child.toFile().toPath();
+				iFileMap.put(MSGVAR.TYPE.getCode(), Files.isDirectory(file) ? "" : "FILE");
 				iFileMap.put(MSGVAR.DIMENSION.getCode(), Long.toString(child.toFile().length()));
 				iFileMap.put(MSGVAR.DATETIME.getCode(), GregorianCalendar.getInstance().getTime().toString());
 				WatchDirEvent vEvent = new WatchDirEvent(iFileMap);
@@ -340,7 +344,8 @@ public class WatchDir
 				{
 					System.out.println("201 WatchDir");
 					WatchDirListener vWatchDirListener = (WatchDirListener) vListenerIterator.next();
-					vWatchDirListener.fireWatcherEvent(vEvent);
+//					vWatchDirListener.fireWatcherEvent(vEvent);
+					watchDirEventList.add(vEvent);
 				}
 			}
 			if (iRecursive && (kind == ENTRY_CREATE))
@@ -443,6 +448,8 @@ public class WatchDir
 					{
 						iFileMap.put(MSGVAR.EVENT.getCode(), EVENTS.retrieveCode(event.kind()));
 						iFileMap.put(MSGVAR.PATH.getCode(), child.toString());
+						Path file = child.toFile().toPath();
+						iFileMap.put(MSGVAR.TYPE.getCode(), Files.isDirectory(file) ? "" : "FILE");
 						iFileMap.put(MSGVAR.DIMENSION.getCode(), Long.toString(child.toFile().length()));
 						iFileMap.put(MSGVAR.DATETIME.getCode(), GregorianCalendar.getInstance().getTime().toString());
 						WatchDirEvent vEvent = new WatchDirEvent(iFileMap);

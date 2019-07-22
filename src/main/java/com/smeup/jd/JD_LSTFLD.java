@@ -145,10 +145,10 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		ArrayList<WatchDirEvent> watchDirEventList = listenFolderChanges();
 		String eventResponse = "";
 		if (null != watchDirEventList && watchDirEventList.size() > 0) {
-				String name = "Name(" + watchDirEventList.get(0).getContent().get("PATH").trim() + ")";
-				String type = "Type(FILE)";
-				String operation = "Operation(" + watchDirEventList.get(0).getContent().get("EVENT").trim() + ")";
-				eventResponse = eventResponse + name + "|" + type + "|" + operation + "|";
+				String name = "NAME(" + watchDirEventList.get(0).getContent().get("PATH").trim() + ")";
+				String type = "TYPE(" + watchDirEventList.get(0).getContent().get("TYPE").trim() + ")";
+				String operation = "OPERATION(" + watchDirEventList.get(0).getContent().get("EVENT").trim() + ")";
+				eventResponse = eventResponse + name + "|" + type + "|" + operation;
 		}
 
 		response = eventResponse;

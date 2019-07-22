@@ -71,6 +71,10 @@
      D $L              S              5  0
      D $S              S              5  0
       *---------------------------------------------------------------
+     D $NA             S           1024
+     D $TY             S           1024
+     D $OP             S           1024
+      *---------------------------------------------------------------
       * Buffer received
      D BUFFER          S          30000
       * Length buffer received
@@ -177,7 +181,7 @@
      C                   EXSR      COSVAR_EVE
      C                   EVAL      §§FUNZ='NFY'
      C                   EVAL      §§METO='EVE'
-     C                   EVAL      §§SVAR=$$VAR
+     C*****              EVAL      §§SVAR=$$VAR
       *
       * .Notify the event (the license plate)
      C                   CALL      'JD_NFYEVE'
@@ -241,9 +245,9 @@
       *                  ENDFOR
      C                   EVAL      $S=%SCAN(%TRIM($$EST_FLT):$$FLT)
      C                   EVAL      $C=%LEN(%TRIM($$EST_FLT))
-     C                   IF        $S>0 AND $S+$C <= %LEN(%TRIM($$FLT)) AND
-     C                             (%SUBST($$EST_FLT:$S+$C)='' OR
-     C                             %SUBST($$EST_FLT:$S+$C)=';')
+     C                   IF        $S>0 AND $S+$C <= %LEN($$FLT) AND
+     C                             (%SUBST($$FLT:$S+$C:1)='' OR
+     C                             %SUBST($$FLT:$S+$C:1)=';')
      C                   EVAL      OK=*ON
 2x   C                   ELSE
      C                   EVAL      OK=*OFF
@@ -259,9 +263,11 @@
       * Extract data (name, type, operation)
      C                   EXSR      EXTRACT_DTA
       *
-     C                   EVAL      §§SVAR='Object name('+%TRIM(§§NAM)+')|' +    COSTANTE
-     C                                    'Object type('+%TRIM(§§TIP)+')|' +    COSTANTE
-     C                                 'Operation type('+%TRIM(§§OPE)+') '      COSTANTE
+     C                   EVAL      $NA='Object name('+%TRIM(§§NAM)+')|'         COSTANTE
+     C                   EVAL      $TY='Object type('+%TRIM(§§TIP)+')|'         COSTANTE
+     C                   EVAL      $OP='Operation type('+%TRIM(§§OPE)+')'       COSTANTE
+      *
+     C                   EVAL      §§SVAR=%TRIM($NA)+%TRIM($TY)+%TRIM($OP)
       *
      C                   ENDSR
       *--------------------------------------------------------------*

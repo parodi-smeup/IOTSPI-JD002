@@ -122,7 +122,6 @@ public class WatchDir
 		}
 	};
 	
-//	private WatchDir INSTANCE= null;
 	private WatchService WATCHER= null;
 	private Map<WatchKey, Path> KEYS = null;
 
@@ -177,13 +176,13 @@ public class WatchDir
 			Path prev = KEYS.get(key);
 			if (prev == null)
 			{
-				log(MessageFormat.format("register: %s\n", dir));
+				log(MessageFormat.format("register: {0}\n", dir));
 			}
 			else
 			{
 				if (!dir.equals(prev))
 				{
-					log(MessageFormat.format("update: %s -> %s\n", prev, dir));
+					log(MessageFormat.format("update: {0} -> {1}\n", prev, dir));
 				}
 			}
 		}
@@ -245,7 +244,7 @@ public class WatchDir
 			
 			if (iRecursive)
 			{
-				log(MessageFormat.format("Scanning %s ...\n", mappa.get(CONF.PATH.getCode())));
+				log(MessageFormat.format("Scanning {0} ...\n", mappa.get(CONF.PATH.getCode())));
 				registerAll(dir, iKind);
 				log("Done.");
 			}
@@ -331,7 +330,7 @@ public class WatchDir
 			if (est)
 			{
 				log(event.kind().name() + " ** " + child + " ** " + child.toFile().length() + "\r\n");
-				log(MessageFormat.format("%s: %s - %s\n", event.kind().name(), child, child.toFile().length()));
+				log(MessageFormat.format("{0}: {1} - {2}\n", event.kind().name(), child, child.toFile().length()));
 				iFileMap.put(MSGVAR.EVENT.getCode(), EVENTS.retrieveCode(event.kind()));
 				iFileMap.put(MSGVAR.PATH.getCode(), child.toString());
 				Path file = child.toFile().toPath();
@@ -344,7 +343,6 @@ public class WatchDir
 				{
 					System.out.println("201 WatchDir");
 					WatchDirListener vWatchDirListener = (WatchDirListener) vListenerIterator.next();
-//					vWatchDirListener.fireWatcherEvent(vEvent);
 					watchDirEventList.add(vEvent);
 				}
 			}
@@ -434,7 +432,7 @@ public class WatchDir
 				if (vIsValidEvent)
 				{
 					log(event.kind().name() + " ** " + child + " ** " + child.toFile().length() + "\r\n");
-					log(MessageFormat.format("%s: %s - %s\n", event.kind().name(), child, child.toFile().length()));
+					log(MessageFormat.format("{0}: {1} - {2}\n", event.kind().name(), child, child.toFile().length()));
 					boolean vFoundKind= false;
 					for (int vI = 0; vI < iKind.length && !vFoundKind; vI++)
 					{

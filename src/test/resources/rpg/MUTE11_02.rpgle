@@ -6,7 +6,7 @@
      V* 04/02/19  V5R1    AS Comments translated to english
      V* 05/07/19  V5R1    BMA Renamed JD_002 in MUTE11_02
      V* 16/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
-     V* 22/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
+     V* 23/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -74,6 +74,19 @@
      D $NA             S           1024
      D $TY             S           1024
      D $OP             S           1024
+      *---------------------------------------------------------------
+     D §§EVE           S              1                                         EVENT
+     D §§PAT           S           2048                                         PATH
+     D §§DIM           S             10                                         DIMENSION
+     D §§DAT           S            256                                         DATETIME
+     D §§TYP           S              5                                         TYPE
+      *---------------------------------------------------------------
+     D $E              S            128                                         EVENT
+     D $P              S           2048                                         PATH
+     D $D              S            128                                         DIMENSION
+     D $T              S            128                                         DATETIME
+     D $Y              S            128                                         TYPE
+     D §V              S           4096
       *---------------------------------------------------------------
       * Buffer received
      D BUFFER          S          30000
@@ -181,7 +194,7 @@
      C                   EXSR      COSVAR_EVE
      C                   EVAL      §§FUNZ='NFY'
      C                   EVAL      §§METO='EVE'
-     C*****              EVAL      §§SVAR=$$VAR
+     C                   EVAL      §§SVAR=§V
       *
       * .Notify the event (the license plate)
      C                   CALL      'JD_NFYEVE'
@@ -207,7 +220,7 @@
      C     CHKOPE        BEGSR
       *
 1    C                   IF        $$EVE=*BLANKS OR
-     C                             %SCAN(%TRIM(§§OPE):$$EVE)>0
+     C                             %SCAN(%TRIM(§§EVE):$$EVE)>0
      C                   EVAL      OK=*ON
 1x   C                   ELSE
      C                   EVAL      OK=*OFF
@@ -224,10 +237,10 @@
 1x   C                   WHEN      $$FLT=*BLANKS
      C                   EVAL      OK=*ON
       * If I have a filter and the event concerns a folder: NO OK
-1x   C                   WHEN      $$FLT<>*BLANKS AND §§TIP<>'FILE'
+1x   C                   WHEN      $$FLT<>*BLANKS AND §§TYP<>'FILE'
      C                   EVAL      OK=*OFF
 1x   C                   OTHER
-     C                   EVAL      $L=%LEN(%TRIMR(§§NAM))
+     C                   EVAL      $L=%LEN(%TRIMR(§§PAT))
       *                   FOR       $L DOWNTO 1
      C                   CLEAR                   $$EST_FLT
      C                   DO        *HIVAL
@@ -235,9 +248,9 @@
      C                   IF        $L=0
      C                   LEAVE
      C                   ENDIF
-     C                   IF        %SUBST(§§NAM:$L:1)='.'
-     C                   IF        $L+1<%LEN(%TRIMR(§§NAM))
-     C                   EVAL      $$EST_FLT=%SUBST(§§NAM:$L+1)
+     C                   IF        %SUBST(§§PAT:$L:1)='.'
+     C                   IF        $L+1<%LEN(%TRIMR(§§PAT))
+     C                   EVAL      $$EST_FLT=%SUBST(§§PAT:$L+1)
      C                   LEAVE
      C                   ENDIF
      C                   ENDIF
@@ -260,14 +273,16 @@
       *--------------------------------------------------------------*
      C     COSVAR_EVE    BEGSR
       *
-      * Extract data (name, type, operation)
+      * Extract data (event, path, dimension, datetime, type)
      C                   EXSR      EXTRACT_DTA
       *
-     C                   EVAL      $NA='Object name('+%TRIM(§§NAM)+')|'         COSTANTE
-     C                   EVAL      $TY='Object type('+%TRIM(§§TIP)+')|'         COSTANTE
-     C                   EVAL      $OP='Operation type('+%TRIM(§§OPE)+')'       COSTANTE
+     C                   EVAL      $E='EVENT('+%TRIM(§§EVE)+')|'                COSTANTE
+     C                   EVAL      $P='PATH('+%TRIM(§§PAT)+')|'                 COSTANTE
+     C                   EVAL      $D='DIMENSION('+%TRIM(§§DIM)+')|'            COSTANTE
+     C                   EVAL      $T='DATETIME('+%TRIM(§§DAT)+')|'             COSTANTE
+     C                   EVAL      $Y='TYPE('+%TRIM(§§TYP)+')'                  COSTANTE
       *
-     C                   EVAL      §§SVAR=%TRIM($NA)+%TRIM($TY)+%TRIM($OP)
+     C                   EVAL      §V=$E+%TRIM($P)+%TRIM($D)+%TRIM($T)+%TRIM($Y)
       *
      C                   ENDSR
       *--------------------------------------------------------------*
@@ -327,16 +342,46 @@
       *
      C                   EVAL      $$VAR=%SUBST(BUFFER:1:BUFLEN)
       * Vars example:
-      * NAME(c:/myFolder/xxx)|TYPE(FILE)|OPERATION(C)
+      * EVENT()|PATH(c:/myFolder/xxx)|DIMENSION()|DATETIME()|TYPE(FILE)
       *
-      * NAME
-     C                   EVAL      $ATTRI=%SCAN('NAME(':$$VAR)                  Index of NAME(
+      * EVENT
+     C                   EVAL      $ATTRI=%SCAN('EVENT(':$$VAR)                 Index of NAME(
+0    C                   IF        $ATTRI>0
+     C                   EVAL      $ATTRI=$ATTRI+6
+     C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
+1    C                   IF        $BRACK>0
+     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
+     C                   EVAL      §§EVE=%SUBST($$VAR:$ATTRI:$ATTLEN)
+1e   C                   ENDIF
+0e   C                   ENDIF
+      * PATH
+     C                   EVAL      $ATTRI=%SCAN('PATH(':$$VAR)                  Index of PATH(
 0    C                   IF        $ATTRI>0
      C                   EVAL      $ATTRI=$ATTRI+5
      C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
 1    C                   IF        $BRACK>0
      C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
-     C                   EVAL      §§NAM=%SUBST($$VAR:$ATTRI:$ATTLEN)
+     C                   EVAL      §§PAT=%SUBST($$VAR:$ATTRI:$ATTLEN)
+1e   C                   ENDIF
+0e   C                   ENDIF
+      * DIMENSION
+     C                   EVAL      $ATTRI=%SCAN('DIMENSION(':$$VAR)             Index of DIMENSION(
+0    C                   IF        $ATTRI>0
+     C                   EVAL      $ATTRI=$ATTRI+10
+     C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
+1    C                   IF        $BRACK>0
+     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
+     C                   EVAL      §§DIM=%SUBST($$VAR:$ATTRI:$ATTLEN)
+1e   C                   ENDIF
+0e   C                   ENDIF
+      * DATETIME
+     C                   EVAL      $ATTRI=%SCAN('DATETIME(':$$VAR)              Index of DATETIME(
+0    C                   IF        $ATTRI>0
+     C                   EVAL      $ATTRI=$ATTRI+9
+     C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
+1    C                   IF        $BRACK>0
+     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
+     C                   EVAL      §§DAT=%SUBST($$VAR:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
       * TYPE
@@ -346,17 +391,7 @@
      C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
 1    C                   IF        $BRACK>0
      C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
-     C                   EVAL      §§TIP=%SUBST($$VAR:$ATTRI:$ATTLEN)
-1e   C                   ENDIF
-0e   C                   ENDIF
-      * OPERATION
-     C                   EVAL      $ATTRI=%SCAN('OPERATION(':$$VAR)             Index of OPERATION(
-0    C                   IF        $ATTRI>0
-     C                   EVAL      $ATTRI=$ATTRI+10
-     C                   EVAL      $BRACK=%SCAN(')':$$VAR:$ATTRI)               Index of )
-1    C                   IF        $BRACK>0
-     C                   EVAL      $ATTLEN=$BRACK-$ATTRI                        Value length
-     C                   EVAL      §§OPE=%SUBST($$VAR:$ATTRI:$ATTLEN)
+     C                   EVAL      §§TYP=%SUBST($$VAR:$ATTRI:$ATTLEN)
 1e   C                   ENDIF
 0e   C                   ENDIF
       *

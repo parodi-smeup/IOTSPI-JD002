@@ -141,14 +141,17 @@ public class JD_LSTFLD implements Program, WatchDirListener {
 		// int port = Integer.parseInt(addrsk.trim());
 
 		// TODO Estrarre dati evento nella forma
-		// "NAME(c:/myFolder/xxx)|TYPE(FILE)|OPERATION(C)
+		// "EVENT(C)|PATH(c:/myFolder/xxx)|DIMENSION()|DATETIME()|TYPE(FILE)
 		ArrayList<WatchDirEvent> watchDirEventList = listenFolderChanges();
 		String eventResponse = "";
 		if (null != watchDirEventList && watchDirEventList.size() > 0) {
-				String name = "NAME(" + watchDirEventList.get(0).getContent().get("PATH").trim() + ")";
-				String type = "TYPE(" + watchDirEventList.get(0).getContent().get("TYPE").trim() + ")";
-				String operation = "OPERATION(" + watchDirEventList.get(0).getContent().get("EVENT").trim() + ")";
-				eventResponse = eventResponse + name + "|" + type + "|" + operation;
+			String ev = "EVENT(" + watchDirEventList.get(0).getContent().get("EVENT").trim() + ")";
+			String pt = "PATH(" + watchDirEventList.get(0).getContent().get("PATH").trim() + ")";
+			String di = "DIMENSION(" + watchDirEventList.get(0).getContent().get("DIMENSION").trim() + ")";
+			String dt = "DATETIME(" + watchDirEventList.get(0).getContent().get("DATETIME").trim() + ")";
+			String ty = "TYPE(" + watchDirEventList.get(0).getContent().get("TYPE").trim() + ")";
+
+			eventResponse = eventResponse + ev + "|" + pt + "|" + di + "|" + dt + "|" + ty;
 		}
 
 		response = eventResponse;

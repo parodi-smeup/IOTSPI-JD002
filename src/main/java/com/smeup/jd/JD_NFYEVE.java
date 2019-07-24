@@ -30,11 +30,11 @@ public class JD_NFYEVE implements Program {
 	public JD_NFYEVE() {
 		parms = new ArrayList<ProgramParam>();
 		// Sme.UP Function
-		parms.add(new ProgramParam("§§FUNZ", new StringType(15)));
+		parms.add(new ProgramParam("§§FUNZ", new StringType(10)));
 		// Sme.UP Method
-		parms.add(new ProgramParam("§§METO", new StringType(30000)));
+		parms.add(new ProgramParam("§§METO", new StringType(10)));
 		// XML from camera
-		parms.add(new ProgramParam("§§SVAR", new StringType(210000)));
+		parms.add(new ProgramParam("§§SVAR", new StringType(4096)));
 		// List of A37 attributes from script
 		parms.add(new ProgramParam("A37TAGS", new StringType(4096)));
 	}
@@ -139,10 +139,7 @@ public class JD_NFYEVE implements Program {
 		
 		msgLog = getTime() + "Event data: " + eventData.trim() + ")";
 		getsPIIoTConnectorAdapter().log(logLevel, msgLog);
-		
-		String[] eventDataSplit = eventData.trim().split("\\|");
-		
-		
+
 		try {
 			// Crea SPIIOTEvent
 			SPIIoTEvent vEvent = new SPIIoTEvent(getA37SubId());
@@ -155,6 +152,15 @@ public class JD_NFYEVE implements Program {
 				msgLog = getTime() + " evento:" + vKey ;
 				getsPIIoTConnectorAdapter().log(logLevel, msgLog);
 				vEvent.setData(vKey, vEvtComp.getIValue());
+			}
+			
+			String[] eventDataSplit = eventData.trim().split("\\|");
+			for(String keyValue:eventDataSplit) {
+				String key = keyValue.substring(0, keyValue.indexOf("("));
+				String value = keyValue.substring(keyValue.indexOf("(")+1, keyValue.indexOf(")") );
+				msgLog = getTime() + " datatable evento: key=" + key + " value=" + value  ;
+				getsPIIoTConnectorAdapter().log(logLevel, msgLog);
+				vEvent.getDataTable().put(key, value);
 			}
 			
 			// invia Evento

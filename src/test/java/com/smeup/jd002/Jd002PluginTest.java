@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.smeup.iotspi.jd002.Jd002Plugin;
@@ -25,6 +26,7 @@ public class Jd002PluginTest extends Thread {
 	private Jd002Plugin jd002Plugin = new Jd002Plugin();
 
 	@Test
+	@Ignore
 	public void test() throws InterruptedException {
 
 		connectorConf.addSub(getSubInterfaceInstance());

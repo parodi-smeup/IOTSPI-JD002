@@ -188,7 +188,7 @@
       * Check if file meets the filter
      C                   EXSR      CHKFLT
 6    C                   IF        NOT(OK)
-     C                   ITER
+     C**                   ITER
 6e   C                   ENDIF
       * .Build variabled to notify the event
      C                   EXSR      COSVAR_EVE

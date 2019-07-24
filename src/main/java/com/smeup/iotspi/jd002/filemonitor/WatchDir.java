@@ -373,18 +373,14 @@ public class WatchDir
 
 	private ArrayList<WatchDirEvent> loop()
 	{
-		log("Chiamato metodo loop()");
-		
 		ArrayList<WatchDirEvent> watchDirEventList = new ArrayList<WatchDirEvent>();
 		boolean loop = true;
 		while (loop)
 		{
 			loop = false;
-			log("Iterazione dentro a loop()");
 			WatchKey key=null;
 			try
 			{
-				log("eseguo take()");
 				key = WATCHER.take();
 			}
 			catch (InterruptedException x)
@@ -397,7 +393,6 @@ public class WatchDir
 				continue;
 			}
 			Path dir = KEYS.get(key);
-			log("eseguo get(key)");
 			if (dir == null)
 			{
 				log("Error: WatchKey not recognized!!");
@@ -405,7 +400,6 @@ public class WatchDir
 			}
 			for (WatchEvent<?> event : key.pollEvents())
 			{
-				log("cicla sugli eventi)");
 				WatchEvent.Kind kind = event.kind();
 				if (kind == OVERFLOW)
 				{

@@ -33,6 +33,7 @@
 			<groupId>com.smeup</groupId>
 			<artifactId>iotspi</artifactId>
 			<version>1.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.smeup.smeup-rpg</groupId>

@@ -5,8 +5,7 @@
      V* 19/10/18  V5R1    AS Created
      V* 04/02/19  V5R1    AS Comments translated to english
      V* 05/07/19  V5R1    BMA Renamed JD_002 in MUTE11_02
-     V* 16/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
-     V* 23/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
+     V* 26/07/19  V5R1    AD Adjustments to work with RPG Intepreter into IOTSPI Plugin
      V*=====================================================================
      H/COPY QILEGEN,£INIZH
       *---------------------------------------------------------------
@@ -48,7 +47,7 @@
       * "Event" variable (input): Events to monitor
       * . *ADD File or folder creation
       * . *CHG File change
-      * . *DEL File or foldere deletion
+      * . *DEL File or folder deletion
      D $$EVE           S             15
       * "filter" variable (input): Filter to apply
       * . Now we can set up only a single filter and only in form *.extension
@@ -87,6 +86,8 @@
      D $T              S            128                                         DATETIME
      D $Y              S            128                                         TYPE
      D §V              S           4096
+      *---------------------------------------------------------------
+     D MSG             S             40                                         SYSTEM OUT
       *---------------------------------------------------------------
       * Buffer received
      D BUFFER          S          30000
@@ -167,6 +168,8 @@
      C                   CLEAR                   BUFFER
      C                   CLEAR                   BUFLEN
      C                   EVAL      IERROR=''
+     C                   EVAL      MSG='--CHIAMA ASCOLTATORE FOLDER JD_LSTFLD'
+     C     MSG           DSPLY
      C                   CALL      'JD_LSTFLD'
      C                   PARM                    ADDRSK
      C                   PARM                    BUFFER
@@ -181,21 +184,35 @@
       * Extract data (name, type, operation)
      C                   EXSR      EXTRACT_DTA
       * Check if operation returned is one of those managed
+     C                   EVAL      MSG='--ESEGUE CHKOPE'
+     C     MSG           DSPLY
      C                   EXSR      CHKOPE
 6    C                   IF        NOT(OK)
+     C                   EVAL      MSG='--CHKOPE NON OK'
+     C     MSG           DSPLY
      C                   ITER
 6e   C                   ENDIF
+     C                   EVAL      MSG='--CHKOPE OK'
+     C     MSG           DSPLY
       * Check if file meets the filter
+     C                   EVAL      MSG='--ESEGUE CHKFLT'
+     C     MSG           DSPLY
      C                   EXSR      CHKFLT
 6    C                   IF        NOT(OK)
-     C**                   ITER
+     C                   EVAL      MSG='--CHKFLT NON OK'
+     C     MSG           DSPLY
+     C                   ITER
 6e   C                   ENDIF
+     C                   EVAL      MSG='--CHKFLT OK'
+     C     MSG           DSPLY
       * .Build variabled to notify the event
      C                   EXSR      COSVAR_EVE
      C                   EVAL      §§FUNZ='NFY'
      C                   EVAL      §§METO='EVE'
      C                   EVAL      §§SVAR=§V
       *
+     C                   EVAL      MSG='--CHIAMA NOTIFICA EVENTI JD_NFYEVE'
+     C     MSG           DSPLY
       * .Notify the event (the license plate)
      C                   CALL      'JD_NFYEVE'
      C                   PARM                    §§FUNZ

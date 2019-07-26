@@ -13,6 +13,8 @@ import java.util.concurrent.ExecutorService;
 import com.smeup.iotspi.jd002.filemonitor.WatchDir;
 import com.smeup.rpgparser.CommandLineProgram;
 import com.smeup.rpgparser.RunnerKt;
+import com.smeup.rpgparser.interpreter.AssignmentsLogHandler;
+import com.smeup.rpgparser.interpreter.EvalLogHandler;
 
 import Smeup.smeui.iotspi.datastructure.interfaces.SezInterface;
 import Smeup.smeui.iotspi.datastructure.interfaces.SubConfInterface;
@@ -118,7 +120,9 @@ public class Jd002Plugin extends SPIIoTConnectorAdapter implements Runnable {
 
 			// Inizialize and call RPG Parser
 			commandLineProgram = RunnerKt.getProgram(rpgSourceName, javaSystemInterface);
-			commandLineProgram.setTraceMode(true);
+//			commandLineProgram.setTraceMode(true);
+			commandLineProgram.addLogHandler(new EvalLogHandler());
+            commandLineProgram.addLogHandler(new AssignmentsLogHandler());
 
 			String response = null;
 			List<String> parms = new ArrayList<String>();

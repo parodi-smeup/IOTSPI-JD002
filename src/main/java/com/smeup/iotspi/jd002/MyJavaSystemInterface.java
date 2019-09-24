@@ -8,6 +8,7 @@ import com.smeup.jd.JD_LSTFLD;
 import com.smeup.jd.JD_NFYEVE;
 import com.smeup.rpgparser.interpreter.Program;
 import com.smeup.rpgparser.jvminterop.JavaSystemInterface;
+import com.smeup.rpgparser.logging.LoggingKt;
 
 import Smeup.smeui.iotspi.interaction.SPIIoTConnectorAdapter;
 
@@ -21,6 +22,7 @@ public class MyJavaSystemInterface extends JavaSystemInterface {
 		this.sPIIoTConnectorAdapter = sPIIoTConnectorAdapter;
 		this.watchDir = watchDir;	
 		this.executorService = executorService;
+		setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.STATEMENT_LOGGER, LoggingKt.EXPRESSION_LOGGER));
 	}
 
 	@Override

@@ -26,7 +26,6 @@ public class Jd002PluginTest extends Thread {
 	private Jd002Plugin jd002Plugin = new Jd002Plugin();
 
 	@Test
-	@Ignore
 	public void test() throws InterruptedException {
 
 		connectorConf.addSub(getSubInterfaceInstance());

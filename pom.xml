@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>com.github.smeup.smeup-rpg</groupId>
 			<artifactId>rpgJavaInterpreter-core</artifactId>
-			<version>e6edf96</version>
+			<version>3d5b3e2</version>
 		</dependency>
 		<dependency>
 			<groupId>dom4j</groupId>

@@ -23,6 +23,14 @@ public class MyJavaSystemInterface extends JavaSystemInterface {
 		this.watchDir = watchDir;	
 		this.executorService = executorService;
 		setLoggingConfiguration(LoggingKt.consoleLoggingConfiguration(LoggingKt.STATEMENT_LOGGER, LoggingKt.EXPRESSION_LOGGER));
+//		setLoggingConfiguration(LoggingKt.fileLoggingConfiguration(new File("/home/tron/temp/log", "mioLog.csv"),
+//				LoggingKt.DATA_LOGGER,
+//				LoggingKt.LOOP_LOGGER, 
+//				LoggingKt.RESOLUTION_LOGGER,
+//				LoggingKt.EXPRESSION_LOGGER, 
+//				LoggingKt.STATEMENT_LOGGER,
+//				LoggingKt.PERFORMANCE_LOGGER));
+		
 	}
 
 	@Override
